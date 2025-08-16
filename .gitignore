@@ -1,0 +1,120 @@
+# --- Python / FastAPI ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Distribución / empaquetado
+.Python
+build/
+dist/
+downloads/
+eggs/
+.eggs/
+*.egg-info/
+*.egg
+wheels/
+share/python-wheels/
+sdist/
+var/
+lib/
+lib64/
+parts/
+.installed.cfg
+MANIFEST
+
+# PyInstaller
+*.spec
+*.manifest
+
+# Logs
+*.log
+logs/
+log/
+
+# Pruebas / cobertura
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Tipos / análisis
+.mypy_cache/
+.pyre/
+.pytype/
+.ruff_cache/
+
+# Notebooks
+.ipynb_checkpoints/
+
+# Documentación
+docs/_build/
+
+# Entornos virtuales
+.venv/
+venv/
+ENV/
+env/
+# Conda (normalmente el env vive fuera del repo, por si acaso)
+.conda/
+conda-meta/
+
+# Configs de entorno
+.env
+.env.*
+!.env.example
+!.env.sample
+!.env.dist
+
+# Bases de datos locales / archivos temporales
+*.sqlite3
+*.db
+tmp/
+temp/
+*.tmp
+*.pid
+*.pid.lock
+
+# Claves/credenciales (evita subirlas)
+*.pem
+*.key
+*.crt
+*.pfx
+
+# IDEs / editores
+# VS Code: ignora todo excepto archivos útiles de proyecto
+.vscode/*
+!.vscode/settings.json
+!.vscode/launch.json
+!.vscode/tasks.json
+!.vscode/extensions.json
+
+# Otras IDEs
+.idea/
+*.iml
+*.code-workspace
+
+# SO
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Icon?
+Desktop.ini
+
+# Docker (opcional)
+docker-compose.override.yml
+
+# Node (por si hay frontend en la misma monorepo)
+node_modules/
+*.tsbuildinfo
+
+# PEP 582
+__pypackages__/

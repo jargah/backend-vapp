@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  mariadb:
+    image: mariadb:10.11
+    container_name: venappdb
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: d5758017c265
+      MYSQL_DATABASE: ven_app_api
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: d5758017c265
+    ports:
+      - "3306:3306"
+    volumes:
+      - venappdb:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql  # Opcional: script de inicialización
+
+volumes:
+  venappdb:
