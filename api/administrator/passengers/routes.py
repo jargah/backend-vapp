@@ -1,0 +1,23 @@
+from fastapi import APIRouter, Depends
+from interceptors.token import Token
+from interceptors.credentials import Credentials
+
+from .controller.list import passengersList
+from .controller.create import passengersCreate
+from .controller.update import passengersUpdate
+from .controller.view import passengersView
+from .controller.delete import passengersDelete
+
+passengers = APIRouter(
+    tags=['Administrator Passengers'], 
+    prefix='/passengers', 
+    dependencies=[
+        Depends(Token()),
+        Depends(Credentials())
+    ]
+)
+passengers.include_router(passengersList)
+passengers.include_router(passengersCreate)
+passengers.include_router(passengersUpdate)
+passengers.include_router(passengersView)
+passengers.include_router(passengersDelete)

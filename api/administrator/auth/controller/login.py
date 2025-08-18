@@ -1,8 +1,12 @@
-from fastapi import APIRouter, HTTPException
-from schemas.account.login import AccountLoginSchema
+from fastapi import APIRouter, HTTPException, Depends
+from sqlalchemy.orm import Session
+from database.MySQL import get_db, rawDB
+from api.administrator.auth.dto.login import LoginDTO
 from starlette.requests import Request
-from models.account.users import UserModel
-import json
+from models.administrator import AdministratorModel
+from helpers.response import ResponseHelper
+from helpers.bcrypt import BCRYPT
+from helpers.jwt import create
 
 login = APIRouter()
 @login.post("/login", 
@@ -10,17 +14,42 @@ login = APIRouter()
     name='',
     
 )
-async def controller(request: Request, body: AccountLoginSchema):
+async def controller(request: Request, body: LoginDTO, db: Session = Depends(get_db)):
     try:
 
-        db = request.state.mysql
+        mUser = AdministratorModel(db)   
+        
+        
+        users = await mUser.selectFirst(
+            "username = '{username}' AND active = 1".format(username=body.username)
+        )
+        
 
-        mUser = UserModel(db)   
-        users = await mUser.selectFirst()
+        if users == None:
+            return ResponseHelper(
+                code=400,
+                errors={
+                    'users': [
+                        'El usuario no se encontro'
+                    ]
+                }
+            )
+        
+        token = create({
+            'id': users['id'],
+            'rol_id': users['rol_id'],
+            'username': users['username'],
+            'phone': users['phone'],
+            'email': users['email']
+        })
 
-        return {
-            'data': users
-        }
+        return ResponseHelper(
+            code=200,
+            data={
+                'session': token
+            }
+        )
+        
     except Exception as e:
         print(str(e))
         return {

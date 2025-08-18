@@ -6,9 +6,6 @@ from starlette.middleware.base import BaseHTTPMiddleware
 class Token(HTTPBearer):
     async def __call__(self, request: Request):
         auth = await super().__call__(request)
-
-        print(auth)
-
         data = decode(auth.credentials)
 
         if data == None:

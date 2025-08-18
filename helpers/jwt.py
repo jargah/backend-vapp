@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 
 def create(payload: dict) -> str:
     print(os.getenv('JWT_TOKEN'))
-    token: str = jwt.encode(payload=payload, key=os.getenv(), algorithm="HS256")
+    token: str = jwt.encode(payload=payload, key=os.getenv('JWT_TOKEN'), algorithm="HS256")
     return token
 
 def decode(token: str) -> dict:
