@@ -3,7 +3,12 @@ from  interceptors.token import Token
 from interceptors.credentials import Credentials
 
 from api.administrator.auth.routes import auth
+
+# Fleets
 from api.administrator.fleets.routes import fleets
+from api.administrator.fleets_groups.routes import fleets as fleetsGroups
+
+# Configuration
 from api.administrator.configurations.routes import configurations
 
 # Operators
@@ -32,7 +37,12 @@ administrator = APIRouter(
 )
 
 administrator.include_router(auth)
+
+# Fleets
 administrator.include_router(fleets)
+administrator.include_router(fleetsGroups)
+
+# Configurations
 administrator.include_router(configurations)
 
 # OPERATORS

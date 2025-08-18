@@ -1,32 +1,32 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from database.MySQL import get_db, rawDB
-from api.administrator.referral_benefits.dto.referral import CreateBenefitsDTO
+from api.administrator.fleets.dto.fleets import CreateFleetDTO
 from starlette.requests import Request
-from models.referral_benefits import ReferralBenefitModel
+from models.fleets import FleetsModel
 from helpers.response import ResponseHelper
 from helpers.dates import now_formatted
 from helpers.jwt import create
 
-referralCreate = APIRouter()
+fleetCreate = APIRouter()
 
 
-@referralCreate.post("/", 
+@fleetCreate.post("/assign", 
     response_model=dict, 
     name='',
     
 )
-async def controller(request: Request, body: CreateBenefitsDTO, db: Session = Depends(get_db)):
+async def controller(request: Request, body: CreateFleetDTO, db: Session = Depends(get_db)):
     try:
 
-        mReferralBenefit = ReferralBenefitModel(db)   
+        mFleets = FleetsModel(db)   
         
-        benefits = await mReferralBenefit.selectFirst(
-            "name = '{email}' AND active = '1' ".format(name=body.name)
+        fleet = await mFleets.selectFirst(
+            "email = '{email}' AND active = '1' ".format(email=body.email)
         )
         
         
-        if benefits != None and benefits['active'] :
+        if fleet != None and fleet['active'] :
             return ResponseHelper(
                 code=400,
                 errors={
@@ -43,9 +43,9 @@ async def controller(request: Request, body: CreateBenefitsDTO, db: Session = De
         fleet_data['creation'] = now_formatted()
         
         
-        benefits_id = await mReferralBenefit.insert(fleet_data)
+        fleet_id = await mFleets.insert(fleet_data)
         
-        if benefits_id == 0:
+        if fleet_id == 0:
             return ResponseHelper(
                 code=400,
                 errors={
@@ -59,8 +59,8 @@ async def controller(request: Request, body: CreateBenefitsDTO, db: Session = De
         return ResponseHelper(
             code=200,
             data={
-                'benefits': {
-                    'id': benefits_id
+                'fleet': {
+                    'id': fleet_id
                 }
             }
         )
