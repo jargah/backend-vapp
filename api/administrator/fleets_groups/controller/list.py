@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from database.MySQL import get_db, rawDB
 from api.administrator.auth.dto.login import LoginDTO
 from starlette.requests import Request
-from models.fleets import FleetsModel
+from models.fleets_operators import FleetOperatorsModel
 from helpers.response import ResponseHelper
 from helpers.bcrypt import BCRYPT
 from helpers.jwt import create
@@ -19,16 +19,16 @@ fleetList = APIRouter()
 async def controller(request: Request, db: Session = Depends(get_db)):
     try:
 
-        mUser = FleetsModel(db)   
+        mFleetGroup = FleetOperatorsModel(db)   
         
         
-        fleets = await mUser.selectAll()
+        fleets = await mFleetGroup.selectAll()
     
         if fleets == None:
             return ResponseHelper(
                 code=400,
                 errors={
-                    'fleets': [
+                    'groups': [
                         'No se encontraron flotillas'
                     ]
                 }
@@ -37,7 +37,7 @@ async def controller(request: Request, db: Session = Depends(get_db)):
         return ResponseHelper(
             code=200,
             data={
-                'fleets': fleets
+                'groups': fleets
             }
         )
         

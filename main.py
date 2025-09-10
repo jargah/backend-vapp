@@ -236,5 +236,5 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
 @app.get('/', tags=['home'])
 def root():
-    return HTMLResponse('<h1>SOCIAL HELP KIT</h1>')
+    return HTMLResponse('<h1>VENAPP</h1>')
 

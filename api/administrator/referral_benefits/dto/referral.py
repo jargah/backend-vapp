@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 from typing import Annotated, Optional
+from decimal import Decimal
 from pydantic import (
     BaseModel,
     Field,
