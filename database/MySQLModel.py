@@ -1,15 +1,58 @@
 from sqlalchemy import text
+import re
+from typing import List, Optional, Dict, Any, Tuple
+
 class MySQLModel:
     def __init__(self, db, table: str):
         self.db = db
         self.table = table
-        # self.datatable_col_names = ''
+        self.datatable_col_names = []
 
     def getTableName(self):
         return self.table
     
     def getColNames(self):
         return self.datatable_col_names
+    
+
+    def _split_alias(self, col: str) -> str:
+        return col.split(".")[-1] if "." in col else col
+
+    def _safe_identifier_sql(self, name: str | None, allow_dot: bool = True) -> str | None:
+        if not name:
+            return None
+        import re
+        pat = r"[A-Za-z0-9_\.]+" if allow_dot else r"[A-Za-z0-9_]+"
+        if not re.fullmatch(pat, name):
+            return None
+        if self.datatable_col_names:
+            base = self._split_alias(name)
+            return name if base in self.datatable_col_names else None
+        return name
+
+    def _build_search_clause_sql(self, search: str | None, search_columns: list[str] | None):
+        
+        params = {}
+        if not search:
+            return "", params
+        
+        cols = search_columns
+        if not cols:
+            return "", params
+        
+        import re
+        parts = []
+        for col in cols:
+            if not re.fullmatch(r"[A-Za-z0-9_\.]+", col):
+                continue
+            parts.append(f"{col} LIKE '%{search}%'")
+            
+ 
+        if not parts:
+            return "", params
+
+
+        return " (" + " OR ".join(parts) + ") "
     
     async def insert(self, data: dict):
         
@@ -132,3 +175,82 @@ class MySQLModel:
             print('error')
             print(e)
             return None
+        
+    async def datatable(
+        self,
+        base_sql: str,
+        database: bool = True,
+        page: int = 1,
+        rows: int = 10,
+        search: str | None = None,
+        order_by: str | None = None,
+        order_asc: bool = True,
+        search_columns: list[str] | str | None = None,
+    ):
+
+        bind = dict({})
+
+        search_columns = self.datatable_col_names
+
+        # Asegura tipos numéricos y mínimos
+        try:
+            page = max(1, int(page))
+        except Exception:
+            page = 1
+        try:
+            rows = max(1, int(rows))
+        except Exception:
+            rows = 10
+
+        order_by = str(order_by) if order_by not in (None, "", False) else None
+        search = str(search) if (search not in (None, "") and search is not False) else None
+
+        # 1) search
+        search_clause = self._build_search_clause_sql(search, search_columns)
+
+        sql_core = base_sql.strip()
+        import re as _re
+        if search_clause:
+            if _re.search(r"\bWHERE\b", sql_core, flags=_re.IGNORECASE):
+                sql_core += " AND " + search_clause
+            else:
+                sql_core += " WHERE " + search_clause
+
+        # 2) ORDER BY seguro (acepta alias con punto)
+        order_sql = ""
+        safe_ob = self._safe_identifier_sql(order_by, allow_dot=True)
+        if safe_ob:
+            order_sql = f" ORDER BY {safe_ob} {'ASC' if order_asc else 'DESC'}"
+
+        # 3) Sin paginación
+        if not database:
+            final_sql = sql_core + order_sql
+            rs = self.db.execute(text(final_sql), bind)
+            return rs.mappings().all() or []
+        
+        print(sql_core
+              )
+
+        # 4) Con paginación
+        count_sql = f"SELECT COUNT(*) AS cnt FROM ({sql_core}) AS _sub"
+        total = self.db.execute(text(count_sql), bind).scalar() or 0
+
+        offset = (page - 1) * rows
+        data_sql = f"{sql_core}{order_sql} LIMIT :_limit OFFSET :_offset"
+        bind_data = dict(bind, _limit=rows, _offset=offset)
+
+        rs = self.db.execute(text(data_sql), bind_data)
+        items = rs.mappings().all() or []
+
+        total_pages = (total + rows - 1) // rows if rows else 0
+        return {
+            "data": items,
+            "meta": {
+                "page": page,
+                "rows": rows,
+                "total_items": total,
+                "total_pages": total_pages,
+                "has_next": page < total_pages,
+                "has_prev": page > 1,
+            },
+        }

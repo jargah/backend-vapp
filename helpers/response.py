@@ -9,9 +9,9 @@ import decimal
 class ResponseHelper(JSONResponse):
     def __init__(self, code: int = status.HTTP_200_OK, message: Optional[str] = None,  errors: Optional[Any] = None, data: Any = None):
         self.code = code
-        self.message = message
-        self.data = data
-        self.errors = errors
+        self.message = message or []
+        self.data = data or None
+        self.errors = errors or []
         
         super().__init__(status_code=self.code, content=self.to_dict())
     
@@ -26,8 +26,8 @@ class ResponseHelper(JSONResponse):
         }
 
 class ExceptionResponse(HTTPException):
-    def __init__(self, error: str, status_code: int = status.HTTP_400_BAD_REQUEST, details: dict = None):
-        super().__init__(status_code=status_code, detail=error)
+    def __init__(self, error: str = None, status_code: int = status.HTTP_400_BAD_REQUEST, details: dict = None):
+        super().__init__(status_code=status_code, detail=details)
         self.details = details or {}
 
     def to_dict(self):

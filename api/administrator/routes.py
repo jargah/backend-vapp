@@ -4,6 +4,9 @@ from interceptors.credentials import Credentials
 
 from api.administrator.auth.routes import auth
 
+# Configuration
+from api.administrator.users.routes import users
+
 # Fleets
 from api.administrator.fleets.routes import fleets
 from api.administrator.fleets_groups.routes import fleets as fleetsGroups
@@ -38,6 +41,10 @@ administrator = APIRouter(
 
 administrator.include_router(auth)
 
+# Configuration
+administrator.include_router(users)
+
+""" 
 # Fleets
 administrator.include_router(fleets)
 administrator.include_router(fleetsGroups)
@@ -66,3 +73,4 @@ administrator.include_router(referralRedemtions)
 #TAXI
 administrator.include_router(taxi)
 administrator.include_router(taxiRequestHistory)
+ """

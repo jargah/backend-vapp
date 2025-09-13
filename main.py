@@ -27,7 +27,7 @@ async def custom_error_handler(request: Request, exc: ExceptionResponse):
     
     return ResponseHelper(
         code=exc.status_code,
-        message=exc.to_dict()
+        errors=exc.details
     )
     
 # ------------------------------------------
