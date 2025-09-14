@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends
-from interceptors.token import Token
+from interceptors.session import Session
 from interceptors.credentials import Credentials
 
 from .controller.list import operatorsList
@@ -12,7 +12,7 @@ operators = APIRouter(
     tags=['Administrator Operators Invoice'], 
     prefix='/operators-invoice', 
     dependencies=[
-        Depends(Token()),
+        Depends(Session()),
         Depends(Credentials())
     ]
 )

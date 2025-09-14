@@ -48,14 +48,19 @@ async def controller(request: Request, body: LoginDTO, db: Session = Depends(get
             'username': users['username'],
             'phone': users['phone'],
             'email': users['email']
-        })
+        }, exp_seconds=5)
+        
+        if token['success'] == False:
+            return ResponseHelper(
+                code=400,
+                message='Request failed',
+                errors=[token['error']]
+            )
 
         return ResponseHelper(
             code=200,
             message='Request completed successfully',
-            data={
-                'token': token
-            }
+            data=token['data']
         )
         
     except Exception as e:

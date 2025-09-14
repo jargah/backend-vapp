@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends
-from interceptors.token import Token
+from interceptors.session import Session
 from interceptors.credentials import Credentials
 
 from .controller.list import referralList
@@ -12,7 +12,7 @@ referral = APIRouter(
     tags=['Administrator Referral Operators'], 
     prefix='/referral-operators', 
     dependencies=[
-        Depends(Token()),
+        Depends(Session()),
         Depends(Credentials())
     ]
 )

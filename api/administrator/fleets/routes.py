@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends
-from interceptors.token import Token
+from interceptors.session import Session
 from interceptors.credentials import Credentials
 
 from .controller.list import fleetList
@@ -12,7 +12,7 @@ fleets = APIRouter(
     tags=['Administrator Fleets'], 
     prefix='/fleets', 
     dependencies=[
-        Depends(Token()),
+        Depends(Session()),
         Depends(Credentials())
     ]
 )

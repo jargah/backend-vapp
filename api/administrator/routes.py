@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends
-from  interceptors.token import Token
 from interceptors.credentials import Credentials
 
 from api.administrator.auth.routes import auth

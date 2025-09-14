@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends
-from interceptors.token import Token
+from interceptors.session import Session
 from interceptors.credentials import Credentials
 
 from .controller.list import configList
@@ -12,7 +12,7 @@ configurations = APIRouter(
     tags=['Administrator Configurations'], 
     prefix='/configurations', 
     dependencies=[
-        Depends(Token()),
+        Depends(Session()),
         Depends(Credentials())
     ]
 )

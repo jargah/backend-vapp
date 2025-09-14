@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends
-from interceptors.token import Token
+from interceptors.session import Session
 from interceptors.credentials import Credentials
 
 from .controller.list import taxiList
@@ -12,7 +12,7 @@ taxi = APIRouter(
     tags=['Administrator Taxi Request History'], 
     prefix='/taxi-request-history', 
     dependencies=[
-        Depends(Token()),
+        Depends(Session()),
         Depends(Credentials())
     ]
 )
