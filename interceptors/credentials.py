@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from database.MySQL import get_db
 from models.api import ApiModel
-from helpers.jwt import decode as jwt_decode
+from helpers.jwt import verify, create
 from helpers.response import ExceptionResponse
 
 
@@ -44,16 +44,14 @@ class Credentials:
     async def __call__(self, request: Request, db: Session = Depends(get_db)):
         # 1) Leer Bearer
         token = self._get_bearer_token(request)
+        
         if not token:
             raise ExceptionResponse(status_code=401, details=["error_token_required"])
         
-
-        jwt_result = jwt_decode(
+        jwt_result = verify(
             token
         )
         
-        print(jwt_result)
-
         if not jwt_result.get("success"):
             # Normaliza códigos según helpers.jwt.decode (los nombres deben coincidir)
             code = jwt_result.get("error") or "error_token_invalid"
@@ -79,18 +77,16 @@ class Credentials:
 
             raise ExceptionResponse(status_code=status, details=[code])
 
-        payload: Dict = jwt_result["data"]
+        payload: Dict = jwt_result["payload"]
         
-        print(payload)
 
         # 3) Colgar en request.state.session
         if not hasattr(request.state, "session") or request.state.session is None:
             request.state.session = {}
+            
         request.state.session["token"] = token
         request.state.session["jwt"] = payload
 
-        # 4) Validación contra tu tabla de APIs (según claim dentro del payload)
-        #    OJO: aquí asumo que el JWT incluye un claim 'token' de tu API.
         api_token_claim = payload.get("token")
         if not api_token_claim:
             # si prefieres usar otro claim, cámbialo aquí
@@ -107,6 +103,5 @@ class Credentials:
             raise ExceptionResponse(status_code=401, details=["error_token_environment"])
 
         request.state.session["api"] = api
-
-        # Dependency no necesita devolver nada; el hecho de no lanzar excepción ya “autoriza”
+        
         return

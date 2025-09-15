@@ -4,7 +4,7 @@ from typing import Annotated, Union, List
 from database.MySQL import get_db, rawDB
 from api.administrator.auth.dto.login import LoginDTO
 from starlette.requests import Request
-from models.users import UsersModel
+from models.roles import RolesModel
 from helpers.response import ResponseHelper
 from schemas.datatable import DataTableQueryDTO, datatable_query_dependency
 
@@ -13,16 +13,16 @@ list = APIRouter()
     response_model=dict, 
     name='',
 )
-async def controller(request: Request, query: Annotated[DataTableQueryDTO, Depends(datatable_query_dependency)], db: Session = Depends(get_db)):
+async def controller(query: Annotated[DataTableQueryDTO, Depends(datatable_query_dependency)], db: Session = Depends(get_db)):
     try:
 
-        mUser = UsersModel(db)
+        mUser = RolesModel(db)
         datatable = await mUser.list(
             query.database, 
             query.page, 
             query.rows, 
             query.search, 
-            query.order_by, 
+            query.order_by,
             query.order_asc
         )
     
@@ -30,7 +30,9 @@ async def controller(request: Request, query: Annotated[DataTableQueryDTO, Depen
         return ResponseHelper(
             code=200,
             message='Request completed successfully',
-            data=datatable
+            data={
+                'roles': datatable
+            }
         )
         
     except Exception as e:

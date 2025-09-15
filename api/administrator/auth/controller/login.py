@@ -8,7 +8,6 @@ from helpers.response import ResponseHelper
 from helpers.bcrypt import BCRYPT
 from helpers.jwt import create
 
-
 login = APIRouter()
 @login.post("/login", 
     response_model=dict, 
@@ -20,12 +19,9 @@ async def controller(request: Request, body: LoginDTO, db: Session = Depends(get
 
         mUser = UsersModel(db)   
         
-        
         users = await mUser.selectFirst(
             "username = '{username}' AND active = 1".format(username=body.username)
         )
-        
-        print(users)
         
         if users == None:
             return ResponseHelper(
@@ -48,22 +44,26 @@ async def controller(request: Request, body: LoginDTO, db: Session = Depends(get
             'username': users['username'],
             'phone': users['phone'],
             'email': users['email']
-        }, exp_seconds=5)
+        }, expires_minutes=60)
         
-        if token['success'] == False:
+
+        if token == None:
             return ResponseHelper(
                 code=400,
                 message='Request failed',
                 errors=[token['error']]
             )
-
+            
         return ResponseHelper(
             code=200,
             message='Request completed successfully',
-            data=token['data']
+            data={
+                'token': token
+            }
         )
         
     except Exception as e:
+        print(e)
         return ResponseHelper(
             code=400,
             message='Request failed',

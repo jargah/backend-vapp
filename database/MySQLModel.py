@@ -1,5 +1,5 @@
 from sqlalchemy import text
-import re
+import re as _re
 from typing import List, Optional, Dict, Any, Tuple
 
 class MySQLModel:
@@ -50,7 +50,7 @@ class MySQLModel:
  
         if not parts:
             return "", params
-
+        
 
         return " (" + " OR ".join(parts) + ") "
     
@@ -192,7 +192,6 @@ class MySQLModel:
 
         search_columns = self.datatable_col_names
 
-        # Asegura tipos numéricos y mínimos
         try:
             page = max(1, int(page))
         except Exception:
@@ -205,33 +204,30 @@ class MySQLModel:
         order_by = str(order_by) if order_by not in (None, "", False) else None
         search = str(search) if (search not in (None, "") and search is not False) else None
 
-        # 1) search
         search_clause = self._build_search_clause_sql(search, search_columns)
-
+        
         sql_core = base_sql.strip()
-        import re as _re
-        if search_clause:
+        if isinstance(search_clause, str) and search_clause.strip() != "":
+           
             if _re.search(r"\bWHERE\b", sql_core, flags=_re.IGNORECASE):
                 sql_core += " AND " + search_clause
             else:
+                print(12)
+                print(search_clause)
                 sql_core += " WHERE " + search_clause
+      
 
-        # 2) ORDER BY seguro (acepta alias con punto)
         order_sql = ""
         safe_ob = self._safe_identifier_sql(order_by, allow_dot=True)
         if safe_ob:
             order_sql = f" ORDER BY {safe_ob} {'ASC' if order_asc else 'DESC'}"
 
-        # 3) Sin paginación
         if not database:
             final_sql = sql_core + order_sql
             rs = self.db.execute(text(final_sql), bind)
             return rs.mappings().all() or []
         
-        print(sql_core
-              )
 
-        # 4) Con paginación
         count_sql = f"SELECT COUNT(*) AS cnt FROM ({sql_core}) AS _sub"
         total = self.db.execute(text(count_sql), bind).scalar() or 0
 
@@ -244,7 +240,7 @@ class MySQLModel:
 
         total_pages = (total + rows - 1) // rows if rows else 0
         return {
-            "data": items,
+            "list": items,
             "meta": {
                 "page": page,
                 "rows": rows,

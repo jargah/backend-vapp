@@ -5,6 +5,7 @@ from api.administrator.auth.routes import auth
 
 # Configuration
 from api.administrator.users.routes import users
+from api.administrator.roles.routes import roles
 
 # Fleets
 from api.administrator.fleets.routes import fleets
@@ -42,6 +43,7 @@ administrator.include_router(auth)
 
 # Configuration
 administrator.include_router(users)
+administrator.include_router(roles)
 
 """ 
 # Fleets
