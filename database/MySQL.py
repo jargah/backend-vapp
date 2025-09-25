@@ -12,6 +12,7 @@ DATABASE_URL: str = "mysql+mysqlconnector://{user}:{password}@{host}:3306/ven_ap
     password=configuration['database']['password'],
     host=configuration['database']['host']
 )
+
 DB_ECHO: bool = os.getenv("DB_ECHO", "true").lower() in ("1", "true", "yes", "y")
 
 engine: Engine = create_engine(
