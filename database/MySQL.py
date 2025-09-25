@@ -1,27 +1,59 @@
+from __future__ import annotations
+
+import os
+from typing import Generator
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, Session
-import logging
+from sqlalchemy.engine import Connection, Engine
+from configuration.config import configuration
 
 
-connection_string = f'mysql+mysqlconnector://admin:d5758017c265@sandbox.cn7ga2jfbmbs.us-east-1.rds.amazonaws.com:3306/ven_app_api'
+DATABASE_URL: str = "mysql+mysqlconnector://{user}:{password}@{host}:3306/ven_app_api".format(
+    user=configuration['database']['user'], 
+    password=configuration['database']['password'],
+    host=configuration['database']['host']
+)
+DB_ECHO: bool = os.getenv("DB_ECHO", "true").lower() in ("1", "true", "yes", "y")
 
-engine = create_engine(connection_string, echo=True)
+engine: Engine = create_engine(
+    DATABASE_URL,
+    echo=DB_ECHO,
+    future=True,
+    pool_pre_ping=True,
+)
 
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+def get_engine() -> Engine:
+    return engine
 
-Base = declarative_base()
 
-def get_db():
-    db = SessionLocal()
+def get_db() -> Generator[Connection, None, None]:
+
+    conn: Connection = engine.connect()
     try:
-        yield db
+        yield conn
     finally:
-        db.close()
-        
-def rawDB():
-    db = Session()
-    try:
-        yield db
-    finally:
-        db.close
+        conn.close()
+
+
+def ensure_tx(conn: Connection):
+    if not conn.in_transaction():
+        return conn.begin()
+    return None
+
+
+def commit_tx(conn: Connection, tx=None) -> None:
+    if tx is not None:
+        if tx.is_active:
+            tx.commit()
+        return
+    cur = conn.get_transaction()
+    if cur is not None and cur.is_active:
+        conn.commit()
+
+
+def rollback_tx(conn: Connection, tx=None) -> None:
+    if tx is not None:
+        if tx.is_active:
+            tx.rollback()
+        return
+    if conn.in_transaction():
+        conn.rollback()

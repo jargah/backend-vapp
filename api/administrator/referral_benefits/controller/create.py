@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
-from database.MySQL import get_db, rawDB
+from database.MySQL import get_db
 from api.administrator.referral_benefits.dto.referral import CreateBenefitsDTO
 from starlette.requests import Request
 from models.referral_benefits import ReferralBenefitModel

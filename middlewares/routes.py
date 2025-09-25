@@ -11,7 +11,6 @@ class Routes(BaseHTTPMiddleware):
         try:
 
             for route in account_router:
-                print(route)
                 routing.APIRouter().include_router(router=route)
 
             return await call_next(request)

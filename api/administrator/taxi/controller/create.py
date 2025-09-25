@@ -1,73 +1,65 @@
-from fastapi import APIRouter, HTTPException, Depends
+from api.administrator.users.dto.user import UserDTO
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from database.MySQL import get_db, rawDB
-from api.administrator.fleets.dto.fleets import CreateFleetDTO
-from starlette.requests import Request
-from models.fleets import FleetsModel
+from database.MySQL import get_db
+from models.users import UsersModel
 from helpers.response import ResponseHelper
-from helpers.dates import now_formatted
-from helpers.jwt import create
-
-taxiCreate = APIRouter()
+from utils.datetime import now
 
 
-@taxiCreate.post("/", 
+
+create = APIRouter()
+@create.post("/create", 
     response_model=dict, 
     name='',
-    
 )
-async def controller(request: Request, body: CreateFleetDTO, db: Session = Depends(get_db)):
+async def controller(dto: UserDTO, db: Session = Depends(get_db)):
     try:
 
-        mFleets = FleetsModel(db)   
+        mUser = UsersModel(db)
         
-        fleet = await mFleets.selectFirst(
-            "email = '{email}' AND active = '1' ".format(email=body.email)
+        check = await mUser.selectFirst(
+            "email = '{email}' AND active = 1".format(email=dto.email)
         )
         
-        
-        if fleet != None and fleet['active'] :
+        if check != None:
             return ResponseHelper(
                 code=400,
-                errors={
-                    'fleet': [
-                        'fleet_already_exist'
-                    ]
-                }
+                message='Request Failed',
+                errors=['error_user_already_exist']
             )
             
+        user_data = {
+            **dto.model_dump(),
+            **{
+                'active': True,
+                'creation': now()
+            }
+        }
         
- 
-        fleet_data = body.model_dump()
-        fleet_data['active'] = True
-        fleet_data['creation'] = now_formatted()
-        
-        
-        fleet_id = await mFleets.insert(fleet_data)
-        
-        if fleet_id == 0:
+            
+        user_id = await mUser.insert(user_data)
+        if not user_id:
             return ResponseHelper(
                 code=400,
-                errors={
-                    'fleet': [
-                        'error_create_fleet'
-                    ]
-                }
+                message='Request Failed',
+                errors=['error_create_user']
             )
         
 
         return ResponseHelper(
             code=200,
+            message='Request completed successfully',
             data={
-                'fleet': {
-                    'id': fleet_id
-                }
+                'id': user_id,
+                'created': True
             }
         )
         
     except Exception as e:
-        print(str(e))
-        return {
-            'code': 400,
-            'errors': ['exception_controller']
-        }
+        print(e)
+        return ResponseHelper(
+            code=400,
+            message='Request failed',
+            errors=['exception_controller']
+        )

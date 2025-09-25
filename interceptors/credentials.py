@@ -30,7 +30,8 @@ class Credentials:
 
     @staticmethod
     def _get_bearer_token(request: Request) -> Optional[str]:
-        auth = request.headers.get("Authorization")
+        
+        auth = request.headers.get("Authorization") or request.headers.get("authorization")
         if not auth:
             return None
         parts = auth.split()
@@ -45,16 +46,24 @@ class Credentials:
         # 1) Leer Bearer
         token = self._get_bearer_token(request)
         
+
         if not token:
             raise ExceptionResponse(status_code=401, details=["error_token_required"])
         
+        
         jwt_result = verify(
-            token
+            token=token,
+            algorithms=['HS256']
         )
         
+        print(1)
+        print(jwt_result)
+        
         if not jwt_result.get("success"):
+            
             # Normaliza códigos según helpers.jwt.decode (los nombres deben coincidir)
             code = jwt_result.get("error") or "error_token_invalid"
+            
 
             # Mapea a HTTP status
             status_map_401 = {
@@ -94,6 +103,7 @@ class Credentials:
 
         mApi = ApiModel(db)
         api = await mApi.selectFirst("token = '{token}'".format(token=api_token_claim))
+
         if api is None:
             raise ExceptionResponse(status_code=401, details=["error_token_invalid"])
 

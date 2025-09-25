@@ -45,6 +45,12 @@ administrator.include_router(auth)
 administrator.include_router(users)
 administrator.include_router(roles)
 
+# OPERATORS
+administrator.include_router(operators)
+
+#TAXI
+administrator.include_router(taxi)
+
 """ 
 # Fleets
 administrator.include_router(fleets)
@@ -54,7 +60,6 @@ administrator.include_router(fleetsGroups)
 administrator.include_router(configurations)
 
 # OPERATORS
-administrator.include_router(operators)
 administrator.include_router(operatorsTaxId)
 administrator.include_router(operatorsInovice)
 

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
-from database.MySQL import get_db, rawDB
+from database.MySQL import get_db
 from api.administrator.auth.dto.login import LoginDTO
 from starlette.requests import Request
 from models.fleets import FleetsModel

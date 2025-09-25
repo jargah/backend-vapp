@@ -1,20 +1,19 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
-from database.MySQL import get_db, rawDB
-from api.administrator.fleets.dto.fleets import UpdateFleetDTO
+from typing import Annotated, Union, List
+from database.MySQL import get_db
+from api.administrator.auth.dto.login import LoginDTO
 from starlette.requests import Request
-from models.fleets import FleetsModel
+from models.users import UsersModel
 from helpers.response import ResponseHelper
-from helpers.bcrypt import BCRYPT
-from helpers.jwt import create
-
-taxiDelete = APIRouter()
+from schemas.datatable import DataTableQueryDTO, datatable_query_dependency
 
 
-@taxiDelete.delete("/{id}", 
+
+deleted = APIRouter()
+@deleted.delete("/{id}/delete", 
     response_model=dict, 
     name='',
-    
 )
 async def controller(id: int, db: Session = Depends(get_db)):
     try:
@@ -22,62 +21,54 @@ async def controller(id: int, db: Session = Depends(get_db)):
         if not id:
             return ResponseHelper(
                 code=400,
-                errors={
-                    'fleets': [
-                        'error_id_required'
-                    ]
-                }
+                message='Request Failed',
+                errors=['error_empty_id']
             )
-            
 
-        mFleets = FleetsModel(db)   
-        
-        fleet = await mFleets.selectFirst(
-            "id = '{id}' AND active = 1".format(id=id)
+        mUser = UsersModel(db)
+        check = await mUser.selectFirst(
+            "id_user = '{id}' AND active = 1".format(id=id)
         )
         
-        if fleet == None:
+
+        if check == None:
             return ResponseHelper(
                 code=400,
-                errors={
-                    'fleet': [
-                        'fleet_no_exist'
-                    ]
-                }
+                message='Request Failed',
+                errors=['error_user_no_found']
             )
             
-        update_fleet = await mFleets.update(
-            "id = '{id}'".format(id=id),
-            {
+        
+        
+        
+        user_id = await mUser.update(
+            "id_user = '{id}'".format(id=id),
+            data={
                 'active': False
             }
         )
         
-        
-        if update_fleet == 0:
+        if not user_id:
             return ResponseHelper(
                 code=400,
-                errors={
-                    'fleet': [
-                        'error_update_fleet'
-                    ]
-                }
+                message='Request Failed',
+                errors=['error_create_user']
             )
         
 
         return ResponseHelper(
             code=200,
+            message='Request completed successfully',
             data={
-                'fleet': {
-                    'delete': True,
-                    'id': id,
-                }
+                'id': id,
+                'deleted': True
             }
         )
         
     except Exception as e:
-        print(str(e))
-        return {
-            'code': 400,
-            'errors': ['exception_controller']
-        }
+        print(e)
+        return ResponseHelper(
+            code=400,
+            message='Request failed',
+            errors=['exception_controller']
+        )

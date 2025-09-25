@@ -85,9 +85,11 @@ def create(
 
 def verify(
     token: str,
-    algorithms: Iterable[str] = ("HS256",),
+    algorithms: Iterable[str] = ("HS256"),
+    key: str = None
 ):
     
+    print(key if key != None else os.getenv('JWT_SECRET'))
 
     try:
         
@@ -95,12 +97,11 @@ def verify(
         
         payload = jwt.decode(
             token,
-            os.getenv('JWT_SECRET'),
+            key if key != None else os.getenv('JWT_SECRET'),
             algorithms=list(algorithms),
             options=options,
         )
-        
-        print(payload)
+    
         
         return {
             "success": True, 

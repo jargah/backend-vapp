@@ -2,7 +2,7 @@ from api.administrator.users.dto.user import UserDTO
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from typing import Annotated, Union, List
-from database.MySQL import get_db, rawDB
+from database.MySQL import get_db
 from api.administrator.auth.dto.login import LoginDTO
 from starlette.requests import Request
 from models.users import UsersModel

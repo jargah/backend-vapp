@@ -1,62 +1,54 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
-from database.MySQL import get_db, rawDB
-from api.administrator.fleets.dto.fleets import ViewFleetDTO
+from typing import Annotated, Union, List
+from database.MySQL import get_db
+from api.administrator.auth.dto.login import LoginDTO
 from starlette.requests import Request
-from models.fleets import FleetsModel
+from models.operators import OperatorsModel
 from helpers.response import ResponseHelper
-from helpers.bcrypt import BCRYPT
-from helpers.jwt import create
-
-operatorsView = APIRouter()
+from schemas.datatable import DataTableQueryDTO, datatable_query_dependency
 
 
-@operatorsView.get("/{id}", 
+
+view = APIRouter()
+@view.get("/{id}/view", 
     response_model=dict, 
     name='',
-    
 )
-async def controller(params: ViewFleetDTO = Depends(), db: Session = Depends(get_db)):
+async def controller(id: int, db: Session = Depends(get_db)):
     try:
         
-        if not params.id:
+        if not id:
             return ResponseHelper(
                 code=400,
-                errors={
-                    'fleets': [
-                        'error_id_required'
-                    ]
-                }
+                message='Request Failed',
+                errors=['error_empty_id']
             )
-        
-        mFleets = FleetsModel(db)   
-        
-        fleets = await mFleets.selectFirst(
-            "id = '{id}' AND active = 1".format(id=params.id)
+
+        mOperators = OperatorsModel(db)
+        check = await mOperators.selectFirst(
+            "id_operador = '{id}'".format(id=id)
         )
         
-
-        if fleets == None:
+        if check == None:
             return ResponseHelper(
                 code=400,
-                errors={
-                    'fleets': [
-                        'error_no_found_fleet'
-                    ]
-                }
+                message='Request Failed',
+                errors=['error_user_no_found']
             )
-    
-
+            
         return ResponseHelper(
             code=200,
+            message='Request completed successfully',
             data={
-                'fleet': fleets
+                'user': check
             }
         )
         
     except Exception as e:
-        print(str(e))
-        return {
-            'code': 400,
-            'errors': ['exception_controller']
-        }
+        print(e)
+        return ResponseHelper(
+            code=400,
+            message='Request failed',
+            errors=['exception_controller']
+        )

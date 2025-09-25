@@ -1,0 +1,16 @@
+apps:
+  - name: backend-vapp
+    cwd: /var/www/backend-vapp
+    script: /var/www/backend-vapp/venv/bin/uvicorn
+    args: "main:app --host 127.0.0.1 --port 8000 --workers 1"
+    interpreter: none
+    exec_mode: fork
+    instances: 1
+    watch: true
+    autorestart: true
+    max_memory_restart: 512M
+    env:
+      #ENV: production
+    out_file: /dev/null
+    error_file: /dev/null
+    merge_logs: true

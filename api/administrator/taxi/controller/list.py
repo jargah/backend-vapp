@@ -1,49 +1,42 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
-from database.MySQL import get_db, rawDB
+from typing import Annotated, Union, List
+from database.MySQL import get_db
 from api.administrator.auth.dto.login import LoginDTO
 from starlette.requests import Request
-from models.fleets import FleetsModel
+from models.taxi import TaxiModel
 from helpers.response import ResponseHelper
-from helpers.bcrypt import BCRYPT
-from helpers.jwt import create
+from schemas.datatable import DataTableQueryDTO, datatable_query_dependency
 
-taxiList = APIRouter()
-
-
-@taxiList.get("/", 
+list = APIRouter()
+@list.get("/list", 
     response_model=dict, 
     name='',
-    
 )
-async def controller(request: Request, db: Session = Depends(get_db)):
+async def controller(query: Annotated[DataTableQueryDTO, Depends(datatable_query_dependency)], db: Session = Depends(get_db)):
     try:
 
-        mUser = FleetsModel(db)   
-        
-        
-        fleets = await mUser.featchAllRows()
+        mTaxi = TaxiModel(db)
+        datatable = await mTaxi.list(
+            query.database, 
+            query.page, 
+            query.rows, 
+            query.search, 
+            query.order_by, 
+            query.order_asc
+        )
     
-        if fleets == None:
-            return ResponseHelper(
-                code=400,
-                errors={
-                    'fleets': [
-                        'No se encontraron flotillas'
-                    ]
-                }
-            )
-        
+
         return ResponseHelper(
             code=200,
-            data={
-                'fleets': fleets
-            }
+            message='Request completed successfully',
+            data=datatable
         )
         
     except Exception as e:
-        print(str(e))
-        return {
-            'code': 400,
-            'errors': ['exception_controller']
-        }
+        print(e)
+        return ResponseHelper(
+            code=400,
+            message='Request failed',
+            errors=['exception_controller']
+        )

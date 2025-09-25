@@ -1,23 +1,28 @@
 from fastapi import APIRouter, Depends
+from .controller.list import list
+from .controller.create import create
+from .controller.edit import edit
+from .controller.view import view
+from .controller.delete import deleted
+
 from interceptors.session import Session
 from interceptors.credentials import Credentials
 
-from .controller.list import taxiList
-from .controller.create import taxiCreate
-from .controller.update import taxiUpdate
-from .controller.view import taxiView
-from .controller.delete import taxiDelete
-
 taxi = APIRouter(
-    tags=['Administrator Taxi'], 
+    tags=['Administrator - Taxi'], 
     prefix='/taxi', 
     dependencies=[
-        Depends(Session()),
-        Depends(Credentials())
+        #Depends(Session()),
+        Depends(Credentials(
+            require_audience=True,
+            require_issuer=True, 
+            leeway=10
+        )),
+        Depends(Session())
     ]
 )
-taxi.include_router(taxiList)
-taxi.include_router(taxiCreate)
-taxi.include_router(taxiUpdate)
-taxi.include_router(taxiView)
-taxi.include_router(taxiDelete)
+taxi.include_router(list)
+taxi.include_router(create)
+taxi.include_router(edit)
+taxi.include_router(view)
+taxi.include_router(deleted)

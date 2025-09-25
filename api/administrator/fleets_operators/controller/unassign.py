@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
-from database.MySQL import get_db, rawDB
+from database.MySQL import get_db
 from api.administrator.fleets.dto.fleets import UpdateFleetDTO
 from models.fleets import FleetsModel
 from helpers.response import ResponseHelper
