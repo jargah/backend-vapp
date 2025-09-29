@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from sqlalchemy import text
 import re as _re
-from typing import List, Optional, Dict, Any, Tuple
+from typing import List, Optional, Dict, Any, Iterable
 
 
 class MySQLModel:
@@ -206,6 +206,28 @@ class MySQLModel:
         self.db.commit()
         # Nota: en algunos drivers MySQL result.lastrowid puede variar
         return getattr(result, "lastrowid", None)
+    
+    async def insert_many(self, rows: Iterable[Dict[str, Any]]) -> int:
+        rows = list(rows)
+        if not rows:
+            return 0
+
+        # Todas las filas deben tener las mismas columnas
+        cols = list(rows[0].keys())
+        for r in rows:
+            if set(r.keys()) != set(cols):
+                raise ValueError("Todas las filas deben tener las mismas columnas")
+
+        placeholders = ", ".join([f":{c}" for c in cols])
+        columns = ", ".join(cols)
+        sql = text(f"INSERT INTO {self.table} ({columns}) VALUES ({placeholders})")
+
+        # SQLAlchemy ejecuta 'executemany' al pasar una lista de diccionarios
+        result = self.db.execute(sql, rows)
+        self.db.commit()
+
+        # Devuelve cuántas filas se intentaron insertar (drivers pueden no dar rowcount)
+        return len(rows)
 
     async def update(self, where: str, data: dict):
         set_values = ""
