@@ -9,6 +9,7 @@ from models.passengers import PassengersModel
 from utils.datetime import now
 from json import loads
 from helpers.jwt import verify
+import os
 
 webhook = APIRouter()
 @webhook.post("/webhook", 
@@ -29,10 +30,16 @@ async def controller(request: Request, db: Session = Depends(get_db)):
             'creation': now()
         })
         
+        key = None
+        if os.getenv('STAGE') == 'production':
+            key = '42e548a7e5a34161b425f7a94fde2c0be81ff2c6628fc1eaa517878455a268e4'
+        else:
+            key = '62958d7c017bbd253b81f63de40b829749f27c29e2a51566559cd0c5c1c6fe4a'
+        
         data = verify(
             token=result, 
             algorithms=['HS256'],
-            key="42e548a7e5a34161b425f7a94fde2c0be81ff2c6628fc1eaa517878455a268e4"
+            key=key
         )
         
         if not data:

@@ -10,6 +10,7 @@ from models.biometricResponse import BiometricResponseModel
 from models.passengers import PassengersModel
 from utils.datetime import now
 from json import dumps
+import os
 
 check = APIRouter()
 @check.get("/check/{id}", 
@@ -54,10 +55,16 @@ async def controller(id: str, db: Session = Depends(get_db)):
  
         biometric_result = biometric['data']
         
+        key = None
+        if os.getenv('STAGE') == 'production':
+            key = '42e548a7e5a34161b425f7a94fde2c0be81ff2c6628fc1eaa517878455a268e4'
+        else:
+            key = '62958d7c017bbd253b81f63de40b829749f27c29e2a51566559cd0c5c1c6fe4a'
+        
         data = verify(
             token=find['token'], 
             algorithms=['HS256'],
-            key="42e548a7e5a34161b425f7a94fde2c0be81ff2c6628fc1eaa517878455a268e4"
+            key=key
         )
         
         if not data:
