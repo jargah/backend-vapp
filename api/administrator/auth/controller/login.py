@@ -4,9 +4,12 @@ from database.MySQL import get_db
 from api.administrator.auth.dto.login import LoginDTO
 from starlette.requests import Request
 from models.users import UsersModel
+from models.users_session import UserSessionModel
 from helpers.response import ResponseHelper
 from helpers.bcrypt import BCRYPT
 from helpers.jwt import create
+from uuid import uuid4
+from utils.datetime import now
 
 login = APIRouter()
 @login.post("/login", 
@@ -18,10 +21,13 @@ async def controller(request: Request, body: LoginDTO, db: Session = Depends(get
     try:
 
         mUser = UsersModel(db)   
+        mUserSessionModel = UserSessionModel(db)
         
         users = await mUser.selectFirst(
             "username = '{username}' AND active = 1".format(username=body.username)
         )
+        
+        uid = uuid4()
         
         if users == None:
             return ResponseHelper(
@@ -30,6 +36,7 @@ async def controller(request: Request, body: LoginDTO, db: Session = Depends(get
                 errors=['error_user_no_found']
             )
             
+        print(BCRYPT.hash(body.password))
             
         if BCRYPT.verify(body.password, users['password']) == False:
             return ResponseHelper(
@@ -54,10 +61,24 @@ async def controller(request: Request, body: LoginDTO, db: Session = Depends(get
                 errors=[token['error']]
             )
             
+        await mUserSessionModel.update(
+            "user_id = '{user_id}'".format(user_id=users['id_user']),
+            { 'active': False }
+        )
+            
+        await mUserSessionModel.insert({
+            'user_id': users['id_user'],
+            'appid': str(uid),
+            'token': str(token),
+            'active': True,
+            'creation': now()
+        })
+            
         return ResponseHelper(
             code=200,
             message='Request completed successfully',
             data={
+                'appid': uid,
                 'token': token
             }
         )

@@ -2,10 +2,14 @@ from fastapi import APIRouter, Depends
 from interceptors.credentials import Credentials
 
 from api.administrator.auth.routes import auth
+from api.administrator.profile.routes import profile
 
 # Configuration
 from api.administrator.users.routes import users
 from api.administrator.roles.routes import roles
+
+# Prospects 
+from api.administrator.prospects.routes import prospects
 
 # Fleets
 from api.administrator.fleets.routes import fleets
@@ -40,10 +44,14 @@ administrator = APIRouter(
 )
 
 administrator.include_router(auth)
+administrator.include_router(profile)
 
 # Configuration
 administrator.include_router(users)
 administrator.include_router(roles)
+
+# PROSPECTS
+administrator.include_router(prospects)
 
 # OPERATORS
 administrator.include_router(operators)

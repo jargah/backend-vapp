@@ -5,7 +5,7 @@ class UsersModel(MySQLModel):
     def __init__(self, db) -> any:
         table = 'administrator.users'
         super().__init__(db, table)
-        self.datatable_col_names = ['id_user', 'first_name', 'last_name', 'username', 'email', 'phone']
+        self.datatable_col_names = ['id', 'first_name', 'last_name', 'username', 'email', 'phone']
         
         
     async def list(self, database: bool = True, page: int = 2, rows: int = 20, search: str = "", order_by: str = "id", order_asc: bool = False):
@@ -20,6 +20,7 @@ class UsersModel(MySQLModel):
                     u.email,
                     u.phone
                 FROM administrator.users u
+                WHERE u.active = 1
             """
             
             result = await self.datatable(

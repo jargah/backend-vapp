@@ -27,11 +27,11 @@ fields = {
 driver = APIRouter()
 
 @driver.post(
-    "/{id}/document-fiscal", 
+    "/{uid}/document-fiscal", 
     response_model=dict,
     name=""
 )
-async def controller(id: int, payload: DocumentDriverDTO = Depends(DocumentDriverDTO.as_form), conn: Connection = Depends(get_db)):
+async def controller(uid: str, payload: DocumentDriverDTO = Depends(DocumentDriverDTO.as_form), conn: Connection = Depends(get_db)):
     
     s3 = AwsStorage()
     
@@ -40,12 +40,21 @@ async def controller(id: int, payload: DocumentDriverDTO = Depends(DocumentDrive
         mProspect = PropectModel(conn)
         mProspectDocument  = ProspectDocumentModel(conn)
         
+        prospect = await mProspect.selectFirst("uid = '{uid}'".format(uid=uid))
+        if not prospect:
+            rollback_tx(conn, tx)
+            return ResponseHelper(
+                code=400,
+                message="Request failed",
+                errors=['error_propect_no_found'],
+            )
+        
         documents = {}
         
         for field, up in payload.iter_files():
             
             size = await size_guard(up, calculate_max_bytes(5))
-            key = f"documents/{id}/{field}/{uuid4()}.{get_full_extension(up.filename or field)}"
+            key = f"documents/{uid}/{field}.{get_full_extension(up.filename or field)}"
             
             upload = s3.upload_file('documentos-prospectos', key, up.file)
             if not upload:
@@ -58,15 +67,14 @@ async def controller(id: int, payload: DocumentDriverDTO = Depends(DocumentDrive
             documents[fields[field]] = key
     
         
-        documents['prospecto_id'] = id
-        documents['csd_clave'] = payload.csd_password
+        documents['csd_clave'] = str(payload.csd_password)
         documents['rfc'] = payload.taxid
         documents['regimen'] = payload.regimen
         documents['creacion'] = now()
         
         
         documents_id = await mProspectDocument.update(
-            "prospecto_id = '{prospecto_id}'".format(prospecto_id=id),
+            "prospecto_id = '{id}'".format(id=prospect['id_prospecto']),
             documents
         )
         if not documents_id:
@@ -82,7 +90,7 @@ async def controller(id: int, payload: DocumentDriverDTO = Depends(DocumentDrive
             code=200,
             message="Request completed successfully",
             data={
-                'prospect_id': id
+                'documents': True
             }
         )
 

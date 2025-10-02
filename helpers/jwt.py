@@ -88,8 +88,6 @@ def verify(
     algorithms: Iterable[str] = ("HS256"),
     key: str = None
 ):
-    
-    print(key if key != None else os.getenv('JWT_SECRET'))
 
     try:
         

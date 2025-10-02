@@ -1,32 +1,41 @@
 from __future__ import annotations
-from typing import Annotated, Optional
+from typing import Any, Dict, Annotated
 import re
 from pydantic import BaseModel, EmailStr, Field, ConfigDict, field_validator, StringConstraints
 
 _PHONE_RE = re.compile(r"^\+?[0-9][0-9\s\-]{6,20}$")
 
-Username  = Annotated[str, StringConstraints(min_length=3, max_length=50, pattern=r"^[a-zA-Z0-9._-]+$")]
+Username = Annotated[str, StringConstraints(min_length=3, max_length=50, pattern=r"^[a-zA-Z0-9._-]+$")]
 FirstName = Annotated[str, StringConstraints(min_length=1, max_length=100)]
 LastName  = Annotated[str, StringConstraints(min_length=1, max_length=120)]
 PhoneStr  = Annotated[str, StringConstraints(min_length=7, max_length=25)]
-Password  = Annotated[str, StringConstraints(min_length=6, max_length=128)]
 
 class UserDTO(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
         str_strip_whitespace=True,
         validate_assignment=True,
+        json_schema_extra={
+            "examples": [
+                {
+                    "rol_id": 2,
+                    "first_name": "Test",
+                    "last_name": "Test 1",
+                    "username": "test.test",
+                    "email": "test@test.com",
+                    "phone": "+52 333333333"
+                }
+            ],
+            "description": "DTO para alta/edición de usuario básico.",
+        }
     )
 
-    rol_id: int = Field(..., ge=1)
+    rol_id: int = Field(..., ge=1, description="ID de rol (>=1).")
     first_name: FirstName
     last_name: LastName
     username: Username
     email: EmailStr
     phone: PhoneStr
-
-    # OPCIONAL
-    password: Optional[Password] = Field(default=None, description="Contraseña opcional (8–128).")
 
     @field_validator("first_name", "last_name")
     @classmethod
@@ -46,7 +55,7 @@ class UserDTO(BaseModel):
     @field_validator("email")
     @classmethod
     def normalize_email(cls, v: EmailStr) -> str:
-        return str(v).lower()
+        return str(v).lower()  # <- FIX
 
     @field_validator("phone")
     @classmethod
@@ -55,22 +64,3 @@ class UserDTO(BaseModel):
         if not _PHONE_RE.match(v):
             raise ValueError("invalid_phone_format")
         return v
-
-    # 👇 clave: tratar "" como None para que realmente sea opcional
-    @field_validator("password", mode="before")
-    @classmethod
-    def empty_password_to_none(cls, v):
-        if v is None:
-            return None
-        if isinstance(v, str) and v.strip() == "":
-            return None
-        return v
-
-    @field_validator("password")
-    @classmethod
-    def validate_password(cls, v: Optional[str]) -> Optional[str]:
-        if v is None:
-            return None
-        if " " in v:
-            raise ValueError("password_cannot_contain_spaces")
-        return v.strip()

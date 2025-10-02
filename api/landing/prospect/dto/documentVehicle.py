@@ -29,12 +29,12 @@ class DocumentVehicleDTO(BaseModel):
         if not present:
             raise ValueError("Send at least one file: circulation_card | insurance_policy | invoice | verification_sticker")
 
-        for name, f in present.items():
+        """ for name, f in present.items():
             if f.content_type not in ALLOWED_MIME:
                 raise ValueError(
                     f"Field '{name}' has unsupported media type '{f.content_type}'. "
                     f"Allowed: {', '.join(sorted(ALLOWED_MIME))}"
-                )
+                ) """
 
         self._files_present = present
         return self

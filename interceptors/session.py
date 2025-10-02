@@ -18,30 +18,29 @@ class Session(HTTPBearer):
 
     async def __call__(self, request: Request) -> Dict[str, Any]:
         # 1) Solo header 'sesion'
-        token: Optional[str] = request.headers.get('session')
+        token: str = request.headers.get('session') or None
         
-
-        if not token:
+   
+        if token == None:
             raise ExceptionResponse(
                 status_code=401, 
                 details=[
                     "error_session_required"
                 ]
             )
+            
 
         # 2) base de session
         if not hasattr(request.state, "session") or not isinstance(getattr(request.state, "session"), dict):
             request.state.session = {}
 
-        session_dict: Dict[str, Any] = dict(request.state.session)
-        session_dict["token"] = token
-        session_dict["token_type"] = "session"
-        session_dict["jwt"] = None
-        
+        session_dict = {}
+  
         # 3) Intentar decodificar si *parece* JWT
         if _looks_like_jwt(token):
 
-            res = verify(token)
+            res = verify(token, algorithms=['HS256'])
+            
             
             if res.get('success') == False:
                 raise ExceptionResponse(
@@ -51,16 +50,8 @@ class Session(HTTPBearer):
                     ]
                 )
                 
-            if res.get('success') and isinstance(res.get('payload'), dict):
-                print(1)
-                session_dict["jwt"] = res.get('payload')
-                session_dict["token_type"] = "jwt"
                 
-
-        try:
-            session_dict = parseDict(session_dict)
-        except Exception:
-            pass
+            session_dict = res.get('payload')
 
         request.state.session = session_dict
         return session_dict

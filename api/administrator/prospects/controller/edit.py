@@ -9,7 +9,6 @@ from models.users import UsersModel
 from helpers.response import ResponseHelper
 from schemas.datatable import DataTableQueryDTO, datatable_query_dependency
 from utils.datetime import now
-from helpers.bcrypt import BCRYPT
 
 
 
@@ -43,11 +42,6 @@ async def controller(id: int, dto: UserDTO, db: Session = Depends(get_db)):
             
         user_data = dto.model_dump()
         
-        if user_data['password'] != None:
-            user_data['password'] = BCRYPT.hash(user_data['password'])
-            
-        else:
-            user_data['password'] = ""
         
         user_id = await mUser.update(
             "id_user = '{id}'".format(id=id),

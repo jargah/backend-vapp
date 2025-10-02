@@ -5,6 +5,7 @@ from database.MySQL import get_db
 from models.users import UsersModel
 from helpers.response import ResponseHelper
 from utils.datetime import now
+from helpers.bcrypt import BCRYPT
 
 
 
@@ -36,6 +37,8 @@ async def controller(dto: UserDTO, db: Session = Depends(get_db)):
                 'creation': now()
             }
         }
+        
+        user_data['password'] = BCRYPT.hash(user_data['password'])
         
             
         user_id = await mUser.insert(user_data)

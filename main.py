@@ -19,10 +19,11 @@ app = FastAPI()
 app.title = os.getenv('APP_NAME')
 app.version = '1.0.0'
 
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"], 
-    allow_credentials=False,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )

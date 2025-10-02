@@ -10,6 +10,7 @@ from models.prospect_vehicle import ProspectVehicleModel
 from helpers.response import ResponseHelper
 from utils.globals import split_fullname
 from utils.datetime import now
+from uuid import uuid4
 
 register = APIRouter()
 
@@ -21,6 +22,9 @@ register = APIRouter()
 async def controller(dto: RegisterDTO, conn: Connection = Depends(get_db)):
     
     tx = ensure_tx(conn) 
+    
+    uid = uuid4()
+    
     try:
         mProspect = PropectModel(conn)
         vehicle_model  = ProspectVehicleModel(conn)
@@ -28,6 +32,7 @@ async def controller(dto: RegisterDTO, conn: Connection = Depends(get_db)):
         created_at = now()
 
         id_prospect = await mProspect.insert({
+            "uid": str(uid),
             "nombre": dto.first_name,
             "apellido_paterno": dto.last_name,
             "apellido_materno": dto.second_surname,
@@ -72,7 +77,7 @@ async def controller(dto: RegisterDTO, conn: Connection = Depends(get_db)):
             code=200,
             message="Request completed successfully",
             data={
-                'id_prospecto': id_prospect
+                'uid': uid
             },
         )
 

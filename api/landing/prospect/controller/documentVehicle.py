@@ -23,11 +23,15 @@ fields = {
 vehicle = APIRouter()
 
 @vehicle.post(
-    "/{id}/document-vehicle", 
+    "/{uid}/document-vehicle", 
     response_model=dict,
     name=""
 )
-async def controller(id: int, payload: DocumentVehicleDTO = Depends(DocumentVehicleDTO.as_form), conn: Connection = Depends(get_db)):
+async def controller(uid: str, payload: DocumentVehicleDTO = Depends(DocumentVehicleDTO.as_form), conn: Connection = Depends(get_db)):
+    
+    
+    print('uid')
+    print(uid)
     
     s3 = AwsStorage()
     
@@ -36,13 +40,24 @@ async def controller(id: int, payload: DocumentVehicleDTO = Depends(DocumentVehi
         mProspect = PropectModel(conn)
         mProspectDocument  = ProspectDocumentModel(conn)
     
+        
+        prospect = await mProspect.selectFirst("uid = '{uid}'".format(uid=uid))
+        print(prospect)
+        if not prospect:
+            rollback_tx(conn, tx)
+            return ResponseHelper(
+                code=400,
+                message="Request failed",
+                errors=['error_propect_no_found'],
+            )
+    
         documents = {}
         
         for field, up in payload.iter_files():
             
             
             size = await size_guard(up, calculate_max_bytes(5))
-            key = f"documents/{id}/{field}/{uuid4()}.{get_full_extension(up.filename or field)}"
+            key = f"documents/{uid}/{field}.{get_full_extension(up.filename or field)}"
             
             upload = s3.upload_file('documentos-prospectos', key, up.file)
             if not upload:
@@ -55,7 +70,7 @@ async def controller(id: int, payload: DocumentVehicleDTO = Depends(DocumentVehi
             documents[fields[field]] = key
     
         
-        documents['prospecto_id'] = id
+        documents['prospecto_id'] = prospect['id_prospecto']
         documents['creacion'] = now()
         
         documents_id = await mProspectDocument.insert(documents)
@@ -72,7 +87,7 @@ async def controller(id: int, payload: DocumentVehicleDTO = Depends(DocumentVehi
             code=200,
             message="Request completed successfully",
             data={
-                'prospect_id': id
+                'documents': True
             }
         )
 
