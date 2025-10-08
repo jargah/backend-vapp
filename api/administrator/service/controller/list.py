@@ -4,7 +4,7 @@ from typing import Annotated, Union, List
 from database.MySQL import get_db
 from api.administrator.auth.dto.login import LoginDTO
 from starlette.requests import Request
-from models.passengers import PassengersModel
+from models.service import ServiceModel
 from helpers.response import ResponseHelper
 from schemas.datatable import DataTableQueryDTO, datatable_query_dependency
 
@@ -16,8 +16,8 @@ list = APIRouter()
 async def controller(query: Annotated[DataTableQueryDTO, Depends(datatable_query_dependency)], db: Session = Depends(get_db)):
     try:
 
-        mPassengersModel = PassengersModel(db)
-        datatable = await mPassengersModel.list(
+        mServiceModel = ServiceModel(db)
+        datatable = await mServiceModel.list(
             query.database, 
             query.page, 
             query.rows, 

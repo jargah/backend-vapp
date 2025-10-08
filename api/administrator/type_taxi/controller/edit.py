@@ -1,21 +1,23 @@
+from api.administrator.type_motor.dto.type_motor import TypeMotorDTO
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from typing import Annotated, Union, List
 from database.MySQL import get_db
 from api.administrator.auth.dto.login import LoginDTO
 from starlette.requests import Request
-from models.users import UsersModel
+from models.type_taxi import TypeTaxi
 from helpers.response import ResponseHelper
 from schemas.datatable import DataTableQueryDTO, datatable_query_dependency
+from utils.datetime import now
 
 
 
-deleted = APIRouter()
-@deleted.delete("/{id}/delete", 
+edit = APIRouter()
+@edit.put("/{id}/edit", 
     response_model=dict, 
     name='',
 )
-async def controller(id: int, db: Session = Depends(get_db)):
+async def controller(id: int, dto: TypeMotorDTO, db: Session = Depends(get_db)):
     try:
 
         if not id:
@@ -25,9 +27,9 @@ async def controller(id: int, db: Session = Depends(get_db)):
                 errors=['error_empty_id']
             )
 
-        mUser = UsersModel(db)
-        check = await mUser.selectFirst(
-            "id_user = '{id}' AND active = 1".format(id=id)
+        mTypeTaxi = TypeTaxi(db)
+        check = await mTypeTaxi.selectFirst(
+            "id_tipo_taxi = '{id}'".format(id=id)
         )
         
 
@@ -35,24 +37,24 @@ async def controller(id: int, db: Session = Depends(get_db)):
             return ResponseHelper(
                 code=400,
                 message='Request Failed',
-                errors=['error_user_no_found']
+                errors=['error_type_taxi_no_found']
             )
             
+        type_taxi_data = {
+            'nombre_tipo_taxi': dto.name,
+        }
         
         
-        
-        user_id = await mUser.update(
-            "id_user = '{id}'".format(id=id),
-            data={
-                'active': False
-            }
+        type_motor_id = await mTypeTaxi.update(
+            "id_tipo_taxi = '{id}'".format(id=id),
+            data=type_taxi_data
         )
         
-        if not user_id:
+        if not type_motor_id:
             return ResponseHelper(
                 code=400,
                 message='Request Failed',
-                errors=['error_create_user']
+                errors=['error_update_type_taxi']
             )
         
 
@@ -61,7 +63,7 @@ async def controller(id: int, db: Session = Depends(get_db)):
             message='Request completed successfully',
             data={
                 'id': id,
-                'deleted': True
+                'updated': True
             }
         )
         

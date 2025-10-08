@@ -3,14 +3,13 @@ from .controller.list import list
 from .controller.create import create
 from .controller.edit import edit
 from .controller.view import view
-from .controller.delete import deleted
 
 from interceptors.session import Session
 from interceptors.credentials import Credentials
 
-passengers = APIRouter(
-    tags=['Administrator - Pasajeros'], 
-    prefix='/passengers', 
+typeMotor = APIRouter(
+    tags=['Administrator - Tipo Motor'], 
+    prefix='/type-motor', 
     dependencies=[
         #Depends(Session()),
         Depends(Credentials(
@@ -21,8 +20,7 @@ passengers = APIRouter(
         Depends(Session())
     ]
 )
-passengers.include_router(list)
-passengers.include_router(create)
-passengers.include_router(edit)
-passengers.include_router(view)
-passengers.include_router(deleted)
+typeMotor.include_router(list)
+typeMotor.include_router(create)
+typeMotor.include_router(edit)
+typeMotor.include_router(view)

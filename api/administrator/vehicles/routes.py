@@ -8,9 +8,9 @@ from .controller.delete import deleted
 from interceptors.session import Session
 from interceptors.credentials import Credentials
 
-passengers = APIRouter(
-    tags=['Administrator - Pasajeros'], 
-    prefix='/passengers', 
+vehicles = APIRouter(
+    tags=['Administrator - Vehicles'], 
+    prefix='/vehicles', 
     dependencies=[
         #Depends(Session()),
         Depends(Credentials(
@@ -21,8 +21,8 @@ passengers = APIRouter(
         Depends(Session())
     ]
 )
-passengers.include_router(list)
-passengers.include_router(create)
-passengers.include_router(edit)
-passengers.include_router(view)
-passengers.include_router(deleted)
+vehicles.include_router(list)
+vehicles.include_router(create)
+vehicles.include_router(edit)
+vehicles.include_router(view)
+vehicles.include_router(deleted)

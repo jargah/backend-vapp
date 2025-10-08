@@ -1,3 +1,4 @@
+from api.administrator.users.dto.user import UserDTO
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from typing import Annotated, Union, List
@@ -7,15 +8,16 @@ from starlette.requests import Request
 from models.users import UsersModel
 from helpers.response import ResponseHelper
 from schemas.datatable import DataTableQueryDTO, datatable_query_dependency
+from utils.datetime import now
 
 
 
-deleted = APIRouter()
-@deleted.delete("/{id}/delete", 
+edit = APIRouter()
+@edit.put("/{id}/edit", 
     response_model=dict, 
     name='',
 )
-async def controller(id: int, db: Session = Depends(get_db)):
+async def controller(id: int, dto: UserDTO, db: Session = Depends(get_db)):
     try:
 
         if not id:
@@ -38,14 +40,12 @@ async def controller(id: int, db: Session = Depends(get_db)):
                 errors=['error_user_no_found']
             )
             
-        
+        user_data = dto.model_dump()
         
         
         user_id = await mUser.update(
             "id_user = '{id}'".format(id=id),
-            data={
-                'active': False
-            }
+            data=user_data
         )
         
         if not user_id:
@@ -61,7 +61,7 @@ async def controller(id: int, db: Session = Depends(get_db)):
             message='Request completed successfully',
             data={
                 'id': id,
-                'deleted': True
+                'updated': True
             }
         )
         

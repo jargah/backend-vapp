@@ -1,8 +1,8 @@
-from api.administrator.users.dto.user import UserDTO
+from api.administrator.type_motor.dto.type_motor import TypeMotorDTO
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from database.MySQL import get_db
-from models.users import UsersModel
+from models.type_payment import TypePayment
 from helpers.response import ResponseHelper
 from utils.datetime import now
 
@@ -13,37 +13,32 @@ create = APIRouter()
     response_model=dict, 
     name='',
 )
-async def controller(dto: UserDTO, db: Session = Depends(get_db)):
+async def controller(dto: TypeMotorDTO, db: Session = Depends(get_db)):
     try:
 
-        mUser = UsersModel(db)
+        mTypePayment = TypePayment(db)
         
-        check = await mUser.selectFirst(
-            "email = '{email}' AND active = 1".format(email=dto.email)
+        check = await mTypePayment.selectFirst(
+            "tipo_pago = '{name}'".format(name=dto.name)
         )
         
         if check != None:
             return ResponseHelper(
                 code=400,
                 message='Request Failed',
-                errors=['error_user_already_exist']
+                errors=['error_type_payment_already_exist']
             )
             
-        user_data = {
-            **dto.model_dump(),
-            **{
-                'active': True,
-                'creation': now()
-            }
+        type_payment_data = {
+            'tipo_pago': dto.name,
         }
-        
             
-        user_id = await mUser.insert(user_data)
-        if not user_id:
+        type_payment_id = await mTypePayment.insert(type_payment_data)
+        if not type_payment_id:
             return ResponseHelper(
                 code=400,
                 message='Request Failed',
-                errors=['error_create_user']
+                errors=['error_create_type_motor']
             )
         
 
@@ -51,7 +46,7 @@ async def controller(dto: UserDTO, db: Session = Depends(get_db)):
             code=200,
             message='Request completed successfully',
             data={
-                'id': user_id,
+                'id': type_payment_id,
                 'created': True
             }
         )

@@ -1,15 +1,12 @@
 from database.MySQLModel import MySQLModel
 
-class VehicleModel(MySQLModel):
+class TypeMotor(MySQLModel):
     def __init__(self, db) -> any:
-        table = 'ven_app_api.vehiculo'
+        table = 'ven_app_api.tipo_motor'
         super().__init__(db, table)
         self.datatable_col_names = [
             'id',
             'name',
-            'branch',
-            'model',
-            'active',
         ]
         
     async def list(self, database: bool = True, page: int = 2, rows: int = 20, search: str = "", order_by: str = "id", order_asc: bool = False):
@@ -17,13 +14,9 @@ class VehicleModel(MySQLModel):
         try:
             SQL = """
                 SELECT 
-                    v.id_vehiculo AS id,
-                    v.nombre AS name,
-                    v.marca AS branch,
-                    v.modelo AS model,
-                    v.activo AS active
-                FROM ven_app_api.vehiculo v
-                WHERE v.activo = 1
+                    tm.id_tipo_motor AS id,
+                    tm.nombre_tipo_motor AS name
+                FROM ven_app_api.tipo_motor tm
             """
             
             result = await self.datatable(
@@ -42,12 +35,12 @@ class VehicleModel(MySQLModel):
             return None
         
         
-    async def findById(self, id_vehiculo: int):
+    async def findById(self, id: int):
         
         try:
             SQL = """
-                SELECT * FROM ven_app_api.vehiculos WHERE id_vehiculo = '{id_vehiculo}'
-            """.format(id_vehiculo=id_vehiculo)
+                SELECT * FROM ven_app_api.tipo_motor WHERE id_tipo_motor = '{id}'
+            """.format(id=id)
             
             
             result = await self.query(
@@ -66,14 +59,10 @@ class VehicleModel(MySQLModel):
         try:
             SQL = """
                 SELECT 
-                    v.id_vehiculo AS id,
-                    v.nombre AS name,
-                    v.marca AS branch,
-                    v.modelo AS model,
-                    v.activo AS active
-                FROM ven_app_api.vehiculo v
-                WHERE v.activo = 1
-                    AND v.id_vehiculo = '{id}'
+                    tm.id_tipo_motor AS id,
+                    tm.nombre_tipo_motor AS name
+                FROM ven_app_api.tipo_motor tm
+                WHERE tm.id_tipo_motor = '{id}'
             """.format(id=id)
             
             

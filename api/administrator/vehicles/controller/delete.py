@@ -4,7 +4,7 @@ from typing import Annotated, Union, List
 from database.MySQL import get_db
 from api.administrator.auth.dto.login import LoginDTO
 from starlette.requests import Request
-from models.users import UsersModel
+from models.vehicle import VehicleModel
 from helpers.response import ResponseHelper
 from schemas.datatable import DataTableQueryDTO, datatable_query_dependency
 
@@ -25,9 +25,9 @@ async def controller(id: int, db: Session = Depends(get_db)):
                 errors=['error_empty_id']
             )
 
-        mUser = UsersModel(db)
-        check = await mUser.selectFirst(
-            "id_user = '{id}' AND active = 1".format(id=id)
+        mVehicleModel = VehicleModel(db)
+        check = await mVehicleModel.selectFirst(
+            "id_vehiculo = '{id}' AND activo = 1".format(id=id)
         )
         
 
@@ -35,16 +35,16 @@ async def controller(id: int, db: Session = Depends(get_db)):
             return ResponseHelper(
                 code=400,
                 message='Request Failed',
-                errors=['error_user_no_found']
+                errors=['error_vehicle_no_found']
             )
             
         
         
         
-        user_id = await mUser.update(
-            "id_user = '{id}'".format(id=id),
+        user_id = await mVehicleModel.update(
+            "id_vehiculo = '{id}'".format(id=id),
             data={
-                'active': False
+                'activo': False
             }
         )
         
